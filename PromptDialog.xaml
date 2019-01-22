@@ -1,0 +1,19 @@
+﻿<Window x:Class="vlabel.PromptDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:vlabel"
+        mc:Ignorable="d"
+        Title="PromptDialog" Height="200" Width="400">
+    <Grid>
+        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+            <Label x:Name="label" Width="200"/>
+            <TextBox x:Name="textbox"/>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <Button Content="OK" Click="ProcessCmd"/>
+                <Button Content="Cancel" Click="ProcessCmd"/>
+            </StackPanel>
+        </StackPanel>
+    </Grid>
+</Window>
