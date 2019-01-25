@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -47,6 +48,15 @@ namespace vlabel
             return l.OrderBy(I => -I.EndFrame).FirstOrDefault(I => I.StartFrame < frm && I.EndFrame < frm);
         }
 
+        public void MarkHere(int frm, string cat)
+        {
+            var L = GetLabel(frm, cat);
+            if (L==null)
+            {
+                L = new Label() { Category = cat, StartFrame = frm, EndFrame = frm };
+                InsertLabel(cat, L);
+            }
+        }
 
         public void MarkIn(int frm, string cat)
         {
@@ -79,6 +89,10 @@ namespace vlabel
             }
         }
 
+        public double ScalePos(int frame,double scale = 1.0)
+        {
+            return ((double)frame) / ((double)VideoFrames) * scale;
+        }
 
         public void InsertLabel(string cat, Label L)
         {
@@ -117,6 +131,43 @@ namespace vlabel
             return f==0 ? frm : f;
         }
 
+        public void Save(string fname)
+        {
+            var s = Newtonsoft.Json.JsonConvert.SerializeObject(this);
+            File.WriteAllText(fname, s);
+        }
+
+        public static VLabeling Create(string fname)
+        {
+            var x = new VLabeling() { Filename = fname };
+            x.Categories = new string[] { "Default" };
+            return x;
+        }
+
+        public static VLabeling Load(string fname)
+        {
+            string s = File.ReadAllText(fname);
+            return Newtonsoft.Json.JsonConvert.DeserializeObject<VLabeling>(s);
+        }
+
+        public static VLabeling LoadShadow(string fname)
+        {
+            var fnew = Path.ChangeExtension(fname, ".vljs");
+            if (!File.Exists(fnew))
+            {
+                return VLabeling.Create(fname);
+            }
+            else
+            {
+                return VLabeling.Load(fnew);
+            }
+        }
+
+        public void SaveShadow()
+        {
+            var fnew = Path.ChangeExtension(Filename, ".vljs");
+            Save(fnew);
+        }
 
     }
 }

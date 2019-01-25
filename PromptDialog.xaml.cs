@@ -27,9 +27,15 @@ namespace vlabel
 
         public string Text => textbox.Text;
 
+        public string LastCommand { get; set; } = "Unknown";
+
+        public bool NeedClear { get => LastCommand == "Replace"; }
+
         private void ProcessCmd(object sender, RoutedEventArgs e)
         {
-            DialogResult = ((string)((Button)sender).Content) == "OK";
+            var t = ((string)((Button)sender).Content);
+            LastCommand = t;
+            DialogResult =  t == "Add" || t=="Replace";
         }
     }
 }

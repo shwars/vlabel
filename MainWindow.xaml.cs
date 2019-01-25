@@ -34,14 +34,15 @@ namespace vlabel
         }
         public string CurrentCat => (string)combo_categories.SelectedValue;
 
-        public VLabeling Main = new VLabeling();
+        public VLabeling Main = VLabeling.Create("");
+
+        public string FileName { get; set; }
 
         private bool IsPlaying;
 
         public MainWindow()
         {
             InitializeComponent();
-            Main.Categories = new string[] { "Default" };
             UpdateCategories();
         }
 
@@ -51,6 +52,9 @@ namespace vlabel
             media_element.Play();
             media_element.Pause();
             IsPlaying = false;
+            Main = VLabeling.LoadShadow(fn);
+            FileName = fn;
+            Redraw();
         }
 
         private void cmd_Open(object sender, RoutedEventArgs e)
@@ -59,6 +63,11 @@ namespace vlabel
             openFileDialog.DefaultExt = "mp4";
             if (openFileDialog.ShowDialog()==true)
                 OpenFile(openFileDialog.FileName);
+        }
+
+        private void cmd_Save(object sender, RoutedEventArgs e)
+        {
+            Main.SaveShadow();
         }
 
         private void Media_element_MediaOpened(object sender, RoutedEventArgs e)
@@ -116,7 +125,8 @@ namespace vlabel
             var dlg = new PromptDialog("Enter categories");
             if (dlg.ShowDialog()==true)
             {
-                Main.Categories = dlg.Text.Split(',').Select(x => x.Trim()).ToArray();
+                if (dlg.NeedClear) Main.Categories = dlg.Text.Split(',').Select(x => x.Trim()).ToArray();
+                else Main.Categories = Main.Categories.Union(dlg.Text.Split(',').Select(x => x.Trim())).ToArray();
                 UpdateCategories();
             }
         }
@@ -137,6 +147,7 @@ namespace vlabel
             if (CurrentCat == null) return;
             Main.MarkIn(CurrentFrame, CurrentCat);
             Redraw_Detail();
+            Redraw_Canvas();
         }
 
         private void cmd_MarkOut(object sender, RoutedEventArgs e)
@@ -144,6 +155,38 @@ namespace vlabel
             if (CurrentCat == null) return;
             Main.MarkOut(CurrentFrame, CurrentCat);
             Redraw_Detail();
+            Redraw_Canvas();
+        }
+
+        private void cmd_Here(object sender, RoutedEventArgs e)
+        {
+            if (CurrentCat == null) return;
+            Main.MarkHere(CurrentFrame, CurrentCat);
+            Redraw_Detail();
+            Redraw_Canvas();
+        }
+
+        Brush RedBrush = new SolidColorBrush(Colors.Red);
+        Brush GreenBrush = new SolidColorBrush(Colors.Green);
+
+        private void Redraw_Canvas()
+        {
+            cnvtimeline.Children.Clear();
+            if (CurrentCat!=null && CurrentCat!="" && Main.Intervals.ContainsKey(CurrentCat))
+            {
+                foreach(var i in Main.Intervals[CurrentCat].OrderBy(x=>x.StartFrame))
+                {
+                    var x1 = Main.ScalePos(i.StartFrame, cnvtimeline.ActualWidth);
+                    var x2 = Main.ScalePos(i.EndFrame, cnvtimeline.ActualWidth);
+                    Brush b = RedBrush;
+                    if (i.StartFrame==i.EndFrame)
+                    {
+                        x1--; x2++; b = GreenBrush;
+                    }
+                    var r = new Line() { X1=x1, X2=x2, Y1=0, Y2=0, Stroke=b, StrokeThickness=5 };
+                    cnvtimeline.Children.Add(r);
+                }
+            }
         }
 
         private void Redraw_Detail()
@@ -189,6 +232,19 @@ namespace vlabel
         {
             CurrentFrame = Main.NextMark(CurrentFrame, CurrentCat);
             UpdatePosition();
+        }
+
+        private void Redraw()
+        {
+            UpdateCategories();
+            UpdatePosition();
+            Redraw_Detail();
+            Redraw_Canvas();
+        }
+
+        private void Combo_categories_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            Redraw_Canvas();
         }
 
     }

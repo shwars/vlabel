@@ -19,9 +19,10 @@
             <StackPanel Orientation="Horizontal">
                 <!-- controls -->
                 <Label x:Name="label_position"/>
-                <ComboBox x:Name="combo_categories"/>
+                <ComboBox x:Name="combo_categories" SelectionChanged="Combo_categories_SelectionChanged"/>
                 <Button Content="In" Click="cmd_MarkIn" Width="30"/>
                 <Button Content="Out" Click="cmd_MarkOut" Width="30"/>
+                <Button Content="Here" Width="30" Click="cmd_Here"/>
                 <Button Content="Del" Click="cmd_Del" Width="30"/>
                 <TextBlock Text="     "/>
                 <Button Content="Play" Click="cmd_Play" x:Name="btn_play" Width="50"/>
@@ -31,19 +32,19 @@
                 <Button Content="M+" Click="cmd_NextMark" Width="30"/>
             </StackPanel>
             <Slider x:Name="slider_video" ValueChanged="Slider_video_ValueChanged"/>
+            <Canvas x:Name="cnvtimeline" Height="20"/>
             <MediaElement x:Name="media_element" MediaOpened="Media_element_MediaOpened" LoadedBehavior="Manual" ScrubbingEnabled="True"/>
         </StackPanel>
         <StackPanel Grid.Row="0" Grid.Column="1">
             <StackPanel Orientation="Horizontal">
                 <!-- command buttons -->
                 <Button Content="Open" Click="cmd_Open"/>
-                <Button Content="Save"/>
+                <Button Content="Save" Click="cmd_Save"/>
                 <Button Content="Categories" Click="cmd_Categories"/>
             </StackPanel>
             <StackPanel x:Name="panel_categories"/>
         </StackPanel>
-        <StackPanel Grid.Row="1" Grid.ColumnSpan="2" x:Name="detail_panel">
-            
+        <StackPanel Grid.Row="1" Grid.ColumnSpan="2" x:Name="detail_panel" Orientation="Horizontal">
         </StackPanel>
     </Grid>
 </Window>
