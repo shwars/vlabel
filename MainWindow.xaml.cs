@@ -13,6 +13,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 
 namespace vlabel
 {
@@ -23,6 +24,13 @@ namespace vlabel
     {
 
         public const int fps = 25;
+
+        public Color[] ColorMap = new Color[] { Colors.Red, Colors.Green, Colors.Blue };
+
+        DispatcherTimer timer_update = new DispatcherTimer()
+        {
+            Interval = TimeSpan.FromSeconds(1.0),
+        };
 
         public int CurrentFrame
         {
@@ -44,6 +52,10 @@ namespace vlabel
         {
             InitializeComponent();
             UpdateCategories();
+            timer_update.Tick += (s, ea) =>
+             {
+                 Dispatcher.Invoke(() => UpdatePosition(false));
+             };
         }
 
         private void OpenFile(string fn)
@@ -94,11 +106,14 @@ namespace vlabel
             UpdatePosition();
         }
 
-        private void UpdatePosition()
+        private void UpdatePosition(bool UpdateCategories = true)
         {
-            foreach(CheckBox cb in panel_categories.Children)
+            if (UpdateCategories)
             {
-                cb.IsChecked = Main.GetStatus(CurrentFrame, (string)cb.Content);
+                foreach (CheckBox cb in panel_categories.Children)
+                {
+                    cb.IsChecked = Main.GetStatus(CurrentFrame, (string)cb.Content);
+                }
             }
             label_position.Content = CurrentFrame.ToString();
             slider_video.Value = CurrentFrame;
@@ -108,6 +123,7 @@ namespace vlabel
         {
             if (IsPlaying)
             {
+                timer_update.Stop();
                 media_element.Pause();
                 IsPlaying = false;
                 btn_play.Content = "Play";
@@ -117,6 +133,7 @@ namespace vlabel
                 media_element.Play();
                 IsPlaying = true;
                 btn_play.Content = "Pause";
+                timer_update.Start();
             }
         }
 
@@ -140,6 +157,8 @@ namespace vlabel
                 combo_categories.Items.Add(c);
                 panel_categories.Children.Add(new CheckBox() { Content = c });
             }
+            cnvtimeline.Height = 10 * Main.Categories.Length;
+            Redraw_Canvas();
         }
 
         private void cmd_MarkIn(object sender, RoutedEventArgs e)
@@ -172,18 +191,21 @@ namespace vlabel
         private void Redraw_Canvas()
         {
             cnvtimeline.Children.Clear();
-            if (CurrentCat!=null && CurrentCat!="" && Main.Intervals.ContainsKey(CurrentCat))
+            int n = -1;
+            foreach(var cat in Main.Categories)
             {
-                foreach(var i in Main.Intervals[CurrentCat].OrderBy(x=>x.StartFrame))
+                n++;
+                if (!Main.Intervals.ContainsKey(cat)) break;
+                foreach (var i in Main.Intervals[cat].OrderBy(x => x.StartFrame))
                 {
                     var x1 = Main.ScalePos(i.StartFrame, cnvtimeline.ActualWidth);
                     var x2 = Main.ScalePos(i.EndFrame, cnvtimeline.ActualWidth);
-                    Brush b = RedBrush;
-                    if (i.StartFrame==i.EndFrame)
+                    Brush b = new SolidColorBrush(ColorMap[n%ColorMap.Length]);
+                    if (i.StartFrame == i.EndFrame)
                     {
-                        x1--; x2++; b = GreenBrush;
+                        x1--; x2++;
                     }
-                    var r = new Line() { X1=x1, X2=x2, Y1=0, Y2=0, Stroke=b, StrokeThickness=5 };
+                    var r = new Line() { X1 = x1, X2 = x2, Y1 = n*8+2, Y2 = n*8+2, Stroke = b, StrokeThickness = 5 };
                     cnvtimeline.Children.Add(r);
                 }
             }

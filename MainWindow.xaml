@@ -32,7 +32,7 @@
                 <Button Content="M+" Click="cmd_NextMark" Width="30"/>
             </StackPanel>
             <Slider x:Name="slider_video" ValueChanged="Slider_video_ValueChanged"/>
-            <Canvas x:Name="cnvtimeline" Height="20"/>
+            <Canvas x:Name="cnvtimeline" Height="10"/>
             <MediaElement x:Name="media_element" MediaOpened="Media_element_MediaOpened" LoadedBehavior="Manual" ScrubbingEnabled="True"/>
         </StackPanel>
         <StackPanel Grid.Row="0" Grid.Column="1">
