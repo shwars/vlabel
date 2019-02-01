@@ -17,6 +17,8 @@ namespace vlabel
 
     public class VLabeling
     {
+        public static string ShadowExtension = ".vl.json";
+
         public string Filename { get; set; }
         public string[] Categories { get; set; }
         public int VideoFrames { get; set; }
