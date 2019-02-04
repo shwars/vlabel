@@ -30,6 +30,11 @@
                 <Button Content="F+" Click="cmd_Next" Width="30"/>
                 <Button Content="M-" Click="cmd_PrevMark" Width="30"/>
                 <Button Content="M+" Click="cmd_NextMark" Width="30"/>
+                <Button Content="Mrg-" Width="40" Click="cmd_MergeLeft"/>
+                <Button Content="Split" Width="40" Click="cmd_Split" />
+                <Button Content="Mrg+" Width="40" Click="cmd_MergeRight"/>
+                <Button Content="Recat" Width="40" Click="cmd_Recategorize"/>
+                <ComboBox x:Name="combo_categ_recateg"/>
             </StackPanel>
             <Slider x:Name="slider_video" ValueChanged="Slider_video_ValueChanged"/>
             <Canvas x:Name="cnvtimeline" Height="10"/>
@@ -41,6 +46,13 @@
                 <Button Content="Open" Click="cmd_Open"/>
                 <Button Content="Save" Click="cmd_Save"/>
                 <Button Content="Categories" Click="cmd_Categories"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Button Content="Scene Detect" Click="cmd_SceneDtct"/>
+                <TextBlock>Thr:</TextBlock>
+                <TextBox x:Name="textbox_scene_treshold" Width="20" Text="10"/>
+                <TextBlock> MinLen:</TextBlock>
+                <TextBox x:Name="textbox_scene_minlen" Width="20" Text="10"/>
             </StackPanel>
             <StackPanel x:Name="panel_categories"/>
         </StackPanel>

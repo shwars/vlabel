@@ -13,12 +13,21 @@ namespace vlabel
         public int StartFrame { get; set; }
 
         public int EndFrame { get; set; }
+
+        public Label Clone()
+        {
+            return new Label()
+            {
+                Category = this.Category,
+                StartFrame = this.StartFrame,
+                EndFrame = this.EndFrame
+            };
+        }
+
     }
 
     public class VLabeling
     {
-        public static string ShadowExtension = ".vl.json";
-
         public string Filename { get; set; }
         public string[] Categories { get; set; }
         public int VideoFrames { get; set; }
@@ -109,6 +118,11 @@ namespace vlabel
             if (L!=null) Intervals[cat].Remove(L);
         }
 
+        public void DeleteLabel(Label L)
+        {
+            Intervals[L.Category].Remove(L);
+        }
+
         public int PrevMark(int frm, string cat)
         {
             if (!Intervals.ContainsKey(cat)) return frm;
@@ -154,7 +168,7 @@ namespace vlabel
 
         public static VLabeling LoadShadow(string fname)
         {
-            var fnew = Path.ChangeExtension(fname, ".vljs");
+            var fnew = Path.ChangeExtension(fname, Config.ShadowExtension);
             if (!File.Exists(fnew))
             {
                 return VLabeling.Create(fname);
@@ -165,10 +179,57 @@ namespace vlabel
             }
         }
 
+        public string ShadowFilename
+        {
+            get => Path.ChangeExtension(Filename, Config.ShadowExtension);
+        }
+
         public void SaveShadow()
         {
-            var fnew = Path.ChangeExtension(Filename, ".vljs");
-            Save(fnew);
+            Save(ShadowFilename);
+        }
+
+        public void Recategorize(int frm, string cat, string new_cat)
+        {
+            var L = GetLabel(frm, cat);
+            if (L!=null)
+            {
+                DeleteLabel(L);
+                L.Category = new_cat;
+                InsertLabel(new_cat, L);
+            }
+        }
+
+        public void Split(int frm, string cat)
+        {
+            var L = GetLabel(frm, cat);
+            if (L == null) return;
+            if (frm == L.StartFrame || frm == L.EndFrame) return;
+            DeleteLabel(L);
+            var M = L.Clone();
+            L.EndFrame = frm-1;
+            M.StartFrame = frm;
+            InsertLabel(cat, L);
+            InsertLabel(cat, M);
+        }
+
+        public void MergeLeft(int frm, string cat)
+        {
+            var L = GetLabel(frm, cat);
+            if (L == null) return;
+            var M = GetLabel(L.StartFrame - 1, cat);
+            if (M == null) return;
+            DeleteLabel(L);
+            M.EndFrame = L.EndFrame;
+        }
+        public void MergeRight(int frm, string cat)
+        {
+            var L = GetLabel(frm, cat);
+            if (L == null) return;
+            var M = GetLabel(L.EndFrame + 1, cat);
+            if (M == null) return;
+            DeleteLabel(L);
+            M.StartFrame = L.StartFrame;
         }
 
     }

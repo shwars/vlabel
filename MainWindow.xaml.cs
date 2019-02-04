@@ -52,10 +52,40 @@ namespace vlabel
         {
             InitializeComponent();
             UpdateCategories();
+            this.KeyDown += KeyProcessor;
             timer_update.Tick += (s, ea) =>
              {
                  Dispatcher.Invoke(() => UpdatePosition(false));
              };
+            
+        }
+
+        private void KeyProcessor(object sender, KeyEventArgs e)
+        {
+            switch (e.Key)
+            {
+                case Key.Space:
+                    cmd_Play(sender, null);
+                    break;
+                case Key.Q:
+                    cmd_MarkIn(sender, null);
+                    break;
+                case Key.W:
+                    cmd_MarkOut(sender, null);
+                    break;
+                case Key.Left:
+                    cmd_Prev(sender, null);
+                    break;
+                case Key.Right:
+                    cmd_Next(sender, null);
+                    break;
+                case Key.Z:
+                    cmd_PrevMark(sender, null);
+                    break;
+                case Key.X:
+                    cmd_NextMark(sender, null);
+                    break;
+            }
         }
 
         private void OpenFile(string fn)
@@ -152,9 +182,11 @@ namespace vlabel
         {
             panel_categories.Children.Clear();
             combo_categories.Items.Clear();
+            combo_categ_recateg.Items.Clear();
             foreach(var c in Main.Categories)
             {
                 combo_categories.Items.Add(c);
+                combo_categ_recateg.Items.Add(c);
                 panel_categories.Children.Add(new CheckBox() { Content = c });
             }
             cnvtimeline.Height = 10 * Main.Categories.Length;
@@ -192,7 +224,14 @@ namespace vlabel
         {
             cnvtimeline.Children.Clear();
             int n = -1;
-            foreach(var cat in Main.Categories)
+            if (combo_categories.SelectedIndex>=0)
+            {
+                Brush b = new SolidColorBrush(Colors.LightGray);
+                var y = combo_categories.SelectedIndex * 8+2;
+                var r = new Line() { Stroke=b,StrokeThickness=9,X1=0,X2=cnvtimeline.ActualWidth,Y1=y,Y2=y };
+                cnvtimeline.Children.Add(r);
+            }
+            foreach (var cat in Main.Categories)
             {
                 n++;
                 if (!Main.Intervals.ContainsKey(cat)) break;
@@ -219,6 +258,7 @@ namespace vlabel
                 var sp = new StackPanel();
                 sp.Children.Add(new TextBlock() { Text = c });
                 var lb = new ListBox();
+                lb.Height = 180; // NB: This is needed to show the scrollbar if needed
                 foreach(var i in Main.Intervals[c].OrderBy(x => x.StartFrame))
                 {
                     lb.Items.Add(new ListBoxItem() { Content = $"{i.StartFrame} -> {i.EndFrame}" });
@@ -269,5 +309,40 @@ namespace vlabel
             Redraw_Canvas();
         }
 
+        private void cmd_SceneDtct(object sender, RoutedEventArgs e)
+        {
+            Main.SaveShadow();
+            var x1 = textbox_scene_treshold.Text.Trim();
+            if (x1 == string.Empty) x1 = "10";
+            var x2 = textbox_scene_minlen.Text.Trim();
+            if (x2 == string.Empty) x2 = "10";
+            System.Diagnostics.Process.Start("python.exe",$".\\scripts\\vscindex.py {Main.ShadowFilename} {x1} {x2}");
+            Main = VLabeling.LoadShadow(FileName);
+            Redraw();
+        }
+
+        private void cmd_Recategorize(object sender, RoutedEventArgs e)
+        {
+            if (combo_categ_recateg.SelectedIndex < 0 || combo_categories.SelectedIndex<0) return;
+            Main.Recategorize(CurrentFrame, combo_categories.SelectedValue as string, combo_categ_recateg.SelectedValue as string);
+            var x = combo_categories.SelectedIndex;
+            Redraw();
+            combo_categories.SelectedIndex = x;
+        }
+
+        private void cmd_Split(object sender, RoutedEventArgs e)
+        {
+            Main.Split(CurrentFrame, CurrentCat);
+        }
+
+        private void cmd_MergeLeft(object sender, RoutedEventArgs e)
+        {
+            Main.MergeLeft(CurrentFrame, CurrentCat);
+        }
+
+        private void cmd_MergeRight(object sender, RoutedEventArgs e)
+        {
+            Main.MergeRight(CurrentFrame, CurrentCat);
+        }
     }
 }
