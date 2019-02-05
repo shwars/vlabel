@@ -51,6 +51,7 @@ namespace vlabel
         public MainWindow()
         {
             InitializeComponent();
+            InitializeKeyMapper();
             UpdateCategories();
             this.KeyDown += KeyProcessor;
             timer_update.Tick += (s, ea) =>
@@ -60,31 +61,46 @@ namespace vlabel
             
         }
 
+        protected Dictionary<Key, EventHandler<RoutedEventArgs>> KeyMapper;
+
+        protected void InitializeKeyMapper()
+        {
+            KeyMapper = new Dictionary<Key, EventHandler<RoutedEventArgs>>()
+            {
+                { Key.Space, cmd_Play },
+                { Key.Q, cmd_MarkIn },
+                { Key.W, cmd_MarkOut },
+                { Key.Z, cmd_Prev },
+                { Key.X, cmd_Next },
+                { Key.A, cmd_PrevMark },
+                { Key.S, cmd_NextMark },
+                { Key.E, cmd_MergeLeft },
+                { Key.R, cmd_MergeRight },
+                { Key.C, cmd_PrevN },
+                { Key.V, cmd_NextN }
+            };
+        }
+
         private void KeyProcessor(object sender, KeyEventArgs e)
         {
-            switch (e.Key)
+            if (e.Key>=Key.D1 && e.Key<=Key.D9)
             {
-                case Key.Space:
-                    cmd_Play(sender, null);
-                    break;
-                case Key.Q:
-                    cmd_MarkIn(sender, null);
-                    break;
-                case Key.W:
-                    cmd_MarkOut(sender, null);
-                    break;
-                case Key.Left:
-                    cmd_Prev(sender, null);
-                    break;
-                case Key.Right:
-                    cmd_Next(sender, null);
-                    break;
-                case Key.Z:
-                    cmd_PrevMark(sender, null);
-                    break;
-                case Key.X:
-                    cmd_NextMark(sender, null);
-                    break;
+                var n = e.Key - Key.D1;
+                if (e.KeyboardDevice.IsKeyDown(Key.LeftShift))
+                {
+                    combo_categ_recateg.SelectedItem = n;
+                    cmd_Recategorize(this, e);
+                }
+                else
+                {
+                    SelectCategory(n);
+                }
+                e.Handled = true;
+            }
+            else if (KeyMapper.ContainsKey(e.Key))
+            {
+                e.Handled = true;
+                KeyMapper[e.Key](sender, null);
             }
         }
 
@@ -120,21 +136,41 @@ namespace vlabel
 
         private void Slider_video_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            CurrentFrame = (int)e.NewValue;
-            UpdatePosition();
+            if (CurrentFrame != (int)e.NewValue)
+            {
+                CurrentFrame = (int)e.NewValue;
+                UpdatePosition();
+            }
         }
 
         private void cmd_Prev(object sender, RoutedEventArgs e)
         {
+            var f = CurrentFrame;
             media_element.Position -= TimeSpan.FromSeconds(1.0 / fps);
+            // while (CurrentFrame==f) { media_element.Position -= TimeSpan.FromMilliseconds(1); }
             UpdatePosition();
         }
 
         private void cmd_Next(object sender, RoutedEventArgs e)
         {
+            var f = CurrentFrame;
             media_element.Position += TimeSpan.FromSeconds(1.0 / fps);
+            // while (CurrentFrame == f) { media_element.Position += TimeSpan.FromMilliseconds(1); }
             UpdatePosition();
         }
+
+        private void cmd_PrevN(object sender, RoutedEventArgs e)
+        {
+            media_element.Position -= TimeSpan.FromSeconds(1.0);
+            UpdatePosition();
+        }
+
+        private void cmd_NextN(object sender, RoutedEventArgs e)
+        {
+            media_element.Position += TimeSpan.FromSeconds(1.0);
+            UpdatePosition();
+        }
+
 
         private void UpdatePosition(bool UpdateCategories = true)
         {
@@ -144,9 +180,25 @@ namespace vlabel
                 {
                     cb.IsChecked = Main.GetStatus(CurrentFrame, (string)cb.Content);
                 }
+                UpdateCurrentInterval();
             }
             label_position.Content = CurrentFrame.ToString();
             slider_video.Value = CurrentFrame;
+        }
+
+        private void UpdateCurrentInterval()
+        {
+            var L = Main.GetLabel(CurrentFrame, CurrentCat);
+            if (L == null)
+            {
+                cur_begin.Text = string.Empty;
+                cur_end.Text = string.Empty;
+            }
+            else
+            {
+                cur_begin.Text = L.StartFrame.ToString();
+                cur_end.Text = L.EndFrame.ToString();
+            }
         }
 
         private void cmd_Play(object sender, RoutedEventArgs e)
@@ -253,6 +305,7 @@ namespace vlabel
         private void Redraw_Detail()
         {
             detail_panel.Children.Clear();
+            var all_boxes = new List<ListBox>();
             foreach(var c in Main.Intervals.Keys)
             {
                 var sp = new StackPanel();
@@ -267,9 +320,11 @@ namespace vlabel
                 {
                     var L = (Main.Intervals[c].OrderBy(x => x.StartFrame).ToArray())[lb.SelectedIndex];
                     CurrentFrame = L.StartFrame;
+                    combo_categories.SelectedValue = L.Category;
                     UpdatePosition();
                 };
                 sp.Children.Add(lb);
+                all_boxes.Add(lb);
                 detail_panel.Children.Add(sp);
             }
         }
@@ -298,15 +353,24 @@ namespace vlabel
 
         private void Redraw()
         {
+            var cc = combo_categories.SelectedIndex;
             UpdateCategories();
             UpdatePosition();
             Redraw_Detail();
             Redraw_Canvas();
+            combo_categories.SelectedIndex = cc;
         }
 
         private void Combo_categories_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             Redraw_Canvas();
+        }
+
+        private void SelectCategory(int cat)
+        {
+            combo_categories.SelectedIndex = cat;
+            Redraw_Canvas();
+            UpdateCurrentInterval();
         }
 
         private void cmd_SceneDtct(object sender, RoutedEventArgs e)
@@ -333,16 +397,19 @@ namespace vlabel
         private void cmd_Split(object sender, RoutedEventArgs e)
         {
             Main.Split(CurrentFrame, CurrentCat);
+            Redraw();
         }
 
         private void cmd_MergeLeft(object sender, RoutedEventArgs e)
         {
             Main.MergeLeft(CurrentFrame, CurrentCat);
+            Redraw();
         }
 
         private void cmd_MergeRight(object sender, RoutedEventArgs e)
         {
             Main.MergeRight(CurrentFrame, CurrentCat);
+            Redraw();
         }
     }
 }

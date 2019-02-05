@@ -40,6 +40,7 @@ namespace vlabel
 
         public Label GetLabel(int frm, string cat)
         {
+            if (cat == null) return null;
             if (!Intervals.ContainsKey(cat)) return null;
             var l = Intervals[cat];
             return l.FirstOrDefault(I => I.StartFrame <= frm && frm <= I.EndFrame );
