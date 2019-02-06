@@ -84,7 +84,8 @@ namespace vlabel
 
         private void KeyProcessor(object sender, KeyEventArgs e)
         {
-            if (e.Key>=Key.D1 && e.Key<=Key.D9)
+            var keyfocus = Keyboard.FocusedElement is TextBox;
+            if (e.Key>=Key.D1 && e.Key<=Key.D9 && !keyfocus)
             {
                 var n = e.Key - Key.D1;
                 if (e.KeyboardDevice.IsKeyDown(Key.LeftShift))
@@ -383,12 +384,15 @@ namespace vlabel
         {
             Main.SaveShadow();
             var x1 = textbox_scene_treshold.Text.Trim();
-            if (x1 == string.Empty) x1 = "10";
+            if (x1 == string.Empty) x1 = "32";
             var x2 = textbox_scene_minlen.Text.Trim();
-            if (x2 == string.Empty) x2 = "10";
-            System.Diagnostics.Process.Start("python.exe",$".\\scripts\\vscindex.py {Main.ShadowFilename} {x1} {x2}");
-            Main = VLabeling.LoadShadow(FileName);
-            Redraw();
+            if (x2 == string.Empty) x2 = "0";
+            var x3 = textbox_scene_maxlen.Text.Trim();
+            if (x3 == string.Empty) x3 = "100000";
+            var P = System.Diagnostics.Process.Start("python.exe",$".\\scripts\\vscindex.py {Main.ShadowFilename} {x1} {x2} {x3}");
+            // P.WaitForExit();
+            // Main = VLabeling.LoadShadow(FileName);
+            // Redraw();
         }
 
         private void cmd_Recategorize(object sender, RoutedEventArgs e)
@@ -416,6 +420,11 @@ namespace vlabel
         {
             Main.MergeRight(CurrentFrame, CurrentCat);
             Redraw();
+        }
+
+        private void cmd_SetTimes(object sender, RoutedEventArgs e)
+        {
+
         }
     }
 }

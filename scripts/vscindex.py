@@ -7,8 +7,8 @@ import sys
 import os
 import scenedetect as sc
 
-if len(sys.argv)!=4:
-    print("Incorrect # of arguments provided. 3 expected.")
+if len(sys.argv)!=5:
+    print("Incorrect # of arguments provided. 4 expected.")
     exit(1)
 
 if not os.path.exists(sys.argv[1]):
@@ -18,11 +18,13 @@ if not os.path.exists(sys.argv[1]):
 fn = sys.argv[1]
 thr = int(sys.argv[2])
 minlen = int(sys.argv[3])
+maxlen = int(sys.argv[4])
 categ_name = "Scenes"
 
-#fn = 'd:\\video\\heedbook_5.vl.json'
-#thr = 32
-#minlen = 64
+print("Analyzig file {} with params:".format(fn))
+print(" * Threshold = {}".format(thr))
+print(" * Min length = {}".format(minlen))
+print(" * Max length = {}".format(maxlen))
 
 with open(fn) as json_file:
     VL = json.load(json_file)
@@ -51,8 +53,9 @@ if categ_name not in VL["Categories"]:
 scenez = []
 
 for i, scene in enumerate(scene_list):
-    if (scene[1].get_frames()-scene[0].get_frames()>=minlen):
-        scenez.append({ "Category" : categ_name, "StartFrame" : scene[0].get_frames(), "EndFrame" : scene[1].get_frames()-1})
+    l = scene[1].get_frames()-scene[0].get_frames()
+    if (l>=minlen and l<=maxlen):
+        scenez.append({ "Category" : categ_name, "StartFrame" : scene[0].get_frames()+1, "EndFrame" : scene[1].get_frames()})
 
 VL["Intervals"][categ_name] = scenez
 

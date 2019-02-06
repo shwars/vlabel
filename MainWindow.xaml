@@ -49,19 +49,34 @@
                 <Button Content="Save" Click="cmd_Save"/>
                 <Button Content="Categories" Click="cmd_Categories"/>
             </StackPanel>
-            <StackPanel Orientation="Horizontal" Margin="10">
+            <StackPanel Margin="10">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock>Thr:</TextBlock>
+                    <TextBox x:Name="textbox_scene_treshold" Width="20" Text="32"/>
+                    <TextBlock Margin="5,0,0,0">MinLen:</TextBlock>
+                    <TextBox x:Name="textbox_scene_minlen" Width="20" Text=""/>
+                    <TextBlock Margin="5,0,0,0">MaxLen:</TextBlock>
+                    <TextBox x:Name="textbox_scene_maxlen" Width="20" Text=""/>
+                </StackPanel>
                 <Button Content="Scene Detect" Click="cmd_SceneDtct"/>
-                <TextBlock>Thr:</TextBlock>
-                <TextBox x:Name="textbox_scene_treshold" Width="20" Text="10"/>
-                <TextBlock> MinLen:</TextBlock>
-                <TextBox x:Name="textbox_scene_minlen" Width="20" Text="10"/>
             </StackPanel>
             <StackPanel Orientation="Horizontal" Margin="10">
                 <TextBox x:Name="cur_begin" Width="40"/>
                 <TextBox x:Name="cur_end" Width="40"/>
-                <Button Content="Set"/>
+                <Button Content="Set" Click="cmd_SetTimes"/>
             </StackPanel>
-            <StackPanel x:Name="panel_categories"/>
+            <StackPanel x:Name="panel_categories" Margin="10"/>
+            <StackPanel Margin="10">
+                <TextBlock>
+                    Hotkeys:<LineBreak/>
+                    Z/X - Prev/Next Frame<LineBreak/>
+                    C/V - Prev/Next Second<LineBreak/>
+                    A/S - Prev/Next Marked Frame<LineBreak/>
+                    Q/W - Mark In / Mark Out<LineBreak/>
+                    1..9 - Select Current Category<LineBreak/>
+                    Shift+1..9 - Change Category<LineBreak/>
+                </TextBlock>
+            </StackPanel>
         </StackPanel>
         <StackPanel Grid.Row="1" Grid.ColumnSpan="2" x:Name="detail_panel" Orientation="Horizontal">
         </StackPanel>
