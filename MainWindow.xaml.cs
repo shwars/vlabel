@@ -25,7 +25,8 @@ namespace vlabel
 
         public const int fps = 25;
 
-        public Color[] ColorMap = new Color[] { Colors.Red, Colors.Green, Colors.Blue };
+        public Color[] ColorMap1 = new Color[] { Colors.Red, Colors.Green, Colors.Blue };
+        public Color[] ColorMap2 = new Color[] { Colors.Orange, Colors.LightGreen, Colors.LightBlue };
 
         DispatcherTimer timer_update = new DispatcherTimer()
         {
@@ -287,16 +288,21 @@ namespace vlabel
             {
                 n++;
                 if (!Main.Intervals.ContainsKey(cat)) break;
+                var b = new Brush[]
+                    {
+                        new SolidColorBrush(ColorMap1[n % ColorMap1.Length]),
+                        new SolidColorBrush(ColorMap2[n % ColorMap2.Length])
+                    };
+                int j = 0;
                 foreach (var i in Main.Intervals[cat].OrderBy(x => x.StartFrame))
                 {
                     var x1 = Main.ScalePos(i.StartFrame, cnvtimeline.ActualWidth);
                     var x2 = Main.ScalePos(i.EndFrame, cnvtimeline.ActualWidth);
-                    Brush b = new SolidColorBrush(ColorMap[n%ColorMap.Length]);
                     if (i.StartFrame == i.EndFrame)
                     {
                         x1--; x2++;
                     }
-                    var r = new Line() { X1 = x1, X2 = x2, Y1 = n*8+2, Y2 = n*8+2, Stroke = b, StrokeThickness = 5 };
+                    var r = new Line() { X1 = x1, X2 = x2, Y1 = n*8+2, Y2 = n*8+2, Stroke = b[j++%2], StrokeThickness = 5 };
                     cnvtimeline.Children.Add(r);
                 }
             }
